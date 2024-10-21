@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import {SHA1, timingSafeEqual } from 'crypto-js';
 
 export async function POST(req) {
   try {
@@ -8,7 +9,14 @@ export async function POST(req) {
       throw new Error("Missing X-Hub-Signature header");
     }
 
-    if (signature !== process.env.OPTIMIZELY_WEBHOOK_SECRET) {
+    const webhookPayload = req.body;
+    const hmac = SHA1(process.env.OPTIMIZELY_WEBHOOK_SECRET);
+    const webhookDigest = hmac.update(webhookPayload).digest('hex');
+
+    const computedSignature = Buffer.from(`sha1=${webhookDigest}`, 'utf-8');
+    const requestSignature = Buffer.from(req.header('X-Hub-Signature', 'utf-8'));
+
+    if (computedSignature.length != requestSignature.length || !timingSafeEqual(computedSignature, requestSignature)) {
       throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }
 
