@@ -11,6 +11,9 @@ export async function POST(req) {
       throw new Error("Missing X-Hub-Signature header");
     }
 
+    const body = await req.json();
+    console.log(`body: ${body}`);
+
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET;
     const bodyString = Buffer.from(req.body, 'utf8');
     console.log(`bodyString: ${bodyString}`);
@@ -26,7 +29,6 @@ export async function POST(req) {
       throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }
 
-    const body = await req.json();
     console.log(`body: ${body}`);
     if (!body?.data?.origin_url || !body?.data?.environment) {
       throw new Error("Missing datafile webhook payload");
