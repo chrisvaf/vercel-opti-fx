@@ -4,7 +4,8 @@ const crypto = require('crypto');
 
 export async function POST(req) {
   try {
-    const signature = req.headers.get("X-Hub-Signature");
+    const signature = req.headers.get("X-Hub-Signature", 'utf-8');
+    console.log(`Signature: ${signature}`);
 
     if (!signature) {
       throw new Error("Missing X-Hub-Signature header");
@@ -12,17 +13,21 @@ export async function POST(req) {
 
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET;
     const bodyString = Buffer.from(req.rawBody, 'utf8')
+    console.log(`bodyString: ${bodyString}`);
     const hmac = crypto.createHmac('sha1', WEBHOOK_SECRET);
     const webhookDigest = hmac.update(bodyString).digest('hex');
 
     const computedSignature = Buffer.from(`sha1=${webhookDigest}`, 'utf-8');
-    const requestSignature = Buffer.from(req.header('X-Hub-Signature', 'utf-8'));
+    console.log(`computedSignature: ${computedSignature}`);
+    const requestSignature = Buffer.from(signature);
+    console.log(`requestSignature: ${requestSignature}`);
 
     if (computedSignature.length != requestSignature.length || !crypto.timingSafeEqual(computedSignature, requestSignature)) {
       throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }
 
     const body = await req.json();
+    console.log(`body: ${body}`);
     if (!body?.data?.origin_url || !body?.data?.environment) {
       throw new Error("Missing datafile webhook payload");
     }
