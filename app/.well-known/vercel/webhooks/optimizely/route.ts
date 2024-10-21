@@ -12,7 +12,7 @@ export async function POST(req) {
     }
 
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET;
-    const bodyString = Buffer.from(req.rawBody, 'utf8')
+    const bodyString = Buffer.from(req.body, 'utf8');
     console.log(`bodyString: ${bodyString}`);
     const hmac = crypto.createHmac('sha1', WEBHOOK_SECRET);
     const webhookDigest = hmac.update(bodyString).digest('hex');
