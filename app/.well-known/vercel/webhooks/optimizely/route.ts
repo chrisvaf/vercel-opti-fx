@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import getRawBody from "raw-body"
-import { sign } from "crypto";
-const crypto = require('crypto');
+import bodyParser from 'body-parser';
+import crypto from 'crypto';
 
 export async function POST(req) {
   try {
@@ -13,14 +12,15 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const data = JSON.stringify(body);
-    const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET;
-    const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
-    const webhookDigest = hmac.update(data).digest('base64');
+    const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET || "";
+    const hmac = crypto.createHmac('sha1', WEBHOOK_SECRET);
+    // const webhookDigest = hmac.update(data).digest('hex');
+    const webhookDigest = Buffer.from('sha1' + '=' + hmac.update(JSON.stringify(body)).digest('hex'), 'utf8');
 
     console.log(`webhookDigest: ${webhookDigest}`);
     console.log(`WEBHOOK_SECRET: ${WEBHOOK_SECRET}`);
 
+    console.log(`Full body: ${JSON.stringify(body)}`);
     const computedSignature = Buffer.from(`sha1=${webhookDigest}`, 'utf-8');
     console.log(`computedSignature: ${computedSignature}`);
     const requestSignature = Buffer.from(signature);
