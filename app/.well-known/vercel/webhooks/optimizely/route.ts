@@ -9,7 +9,7 @@ export async function POST(req) {
     }
 
     if (signature !== process.env.OPTIMIZELY_WEBHOOK_SECRET) {
-      throw new Error("Invalid X-Hub-Signature header");
+      throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }
 
     const body = await req.json();
