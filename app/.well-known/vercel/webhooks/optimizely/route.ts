@@ -12,7 +12,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    console.log(`body: ${body}`);
+    console.log(`body: ${JSON.stringify(body)}`);
 
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET;
     const bodyString = Buffer.from(req.body, 'utf8');
