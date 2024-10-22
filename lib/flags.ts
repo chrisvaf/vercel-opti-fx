@@ -15,6 +15,7 @@ export const showBuyNowFlag = flag<{
   ],
   async decide({ headers }) {
     const datafile = await get("datafile");
+    console.log("Checing buy now")
 
     if (!datafile) {
       throw new Error("Failed to retrive datafile from Vercel Edge Config");
@@ -41,6 +42,7 @@ export const showBuyNowFlag = flag<{
     }
 
     const decision = context.decide("buynow");
+    console.log(`BuyNow decision: ${decision.enabled}`);
     const flag = {
       enabled: decision.enabled,
       buttonText: decision.variables.buynow_text as string,

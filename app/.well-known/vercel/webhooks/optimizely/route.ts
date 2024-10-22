@@ -57,7 +57,6 @@ export async function POST(req: Request) {
     //const data = await JSON.parse(body.data);
     //var data = JSON.parse(body.data);
     console.log(`Data: ${body.data}`);
-    console.log(`Change type: ${body.data.change_type}`);
     if (!body?.data?.origin_url || !body?.data?.environment) {
       throw new Error("Missing datafile webhook payload");
     }
