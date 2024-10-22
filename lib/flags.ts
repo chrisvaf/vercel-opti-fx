@@ -63,8 +63,8 @@ export const showInventoryFlag = flag<{
   options: [
     { label: "Hide", value: { enabled: false, showAmounts: false, textColor: 'green' } },
     { label: "Show", value: { enabled: true, showAmounts: false, textColor: 'green' } },
-    { label: "Show", value: { enabled: true, showAmounts: true, textColor: 'green' } },
-    { label: "Show", value: { enabled: true, showAmounts: true, textColor: 'Red' } },
+    { label: "Show Amounts", value: { enabled: true, showAmounts: true, textColor: 'green' } },
+    { label: "Show Amounts Red", value: { enabled: true, showAmounts: true, textColor: 'Red' } },
   ],
   async decide({ headers }) {
     const datafile = await get("datafile");
@@ -100,6 +100,54 @@ export const showInventoryFlag = flag<{
       inventoryText: decision.variables.show_amounts ? "3 in stock" : "In stock",
       textColor: decision.variables.text_color as string,
       showAmounts: decision.variables.show_amounts as boolean
+    };
+
+    return flag;
+  },
+});
+
+export const plpFlag = flag<{
+  enabled: boolean;
+  sortField?: string;
+}>({
+  key: "plp",
+  description: "A feature flag to control how products are returned in the Product Listing page.",
+  options: [
+    { label: "Hide", value: { enabled: false, sortField: "title" } },
+    { label: "Price Desc", value: { enabled: true, sortField: "price_descending" } },
+    { label: "Price Asc", value: { enabled: true, sortField: "price_ascending" } },
+  ],
+  async decide({ headers }) {
+    const datafile = await get("datafile");
+
+    if (!datafile) {
+      throw new Error("Failed to retrive datafile from Vercel Edge Config");
+    }
+
+    const client = optimizely.createInstance({
+      datafile: datafile as object,
+      eventDispatcher: {
+        dispatchEvent: (event) => {},
+      },
+    });
+
+    if (!client) {
+      throw new Error("Failed to create client");
+    }
+
+    await client.onReady();
+
+    const shopper = getShopperFromHeaders(headers);
+    const context = client.createUserContext(shopper);
+
+    if (!context) {
+      throw new Error("Failed to create user context");
+    }
+
+    const decision = context.decide("plp");
+    const flag = {
+      enabled: decision.enabled,
+      sortField: decision.variables.sort_field as string
     };
 
     return flag;

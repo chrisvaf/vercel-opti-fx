@@ -9,12 +9,19 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between p-4 bg-white">
       <Link
-        className="flex items-center gap-2 font-semibold"
+        className="flex items-start gap-2 font-semibold"
         prefetch={true}
         href="/"
       >
         <Package2Icon className="h-6 w-6" />
         <span className="">Acme Store</span>
+      </Link>
+      <Link
+        className="flex items-start gap-2 font-semibold"
+        prefetch={true}
+        href="/products"
+      >
+        <span className="">Browse Products</span>
       </Link>
       <nav className="flex items-center gap-4">
         <Button asChild className="pl-1">
