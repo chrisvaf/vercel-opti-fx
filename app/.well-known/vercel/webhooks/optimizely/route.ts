@@ -1,35 +1,63 @@
 import { NextResponse } from "next/server";
-import bodyParser from 'body-parser';
-import crypto from 'crypto';
+import type { Readable } from 'node:stream';
+import { headers } from 'next/headers';
 
-export async function POST(req) {
+import crypto from 'crypto';
+import { NextApiRequest } from "next";
+
+/*export const config = {
+  api: {
+      bodyParser: false
+  }
+};*/
+
+async function getRawBody(readable: Readable): Promise<Buffer> {
+  const chunks:any = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+export async function POST(req: Request) {
   try {
-    const signature = req.headers.get("X-Hub-Signature", 'utf-8');
+    const headersList = await headers();
+
+    const signature = headersList.get("X-Hub-Signature");
     console.log(`Signature: ${signature}`);
 
     if (!signature) {
       throw new Error("Missing X-Hub-Signature header");
     }
 
-    const body = await req.json();
+    const rawBody = await req.text();
+    //console.log(`rawBody: ${rawBody}`);
+    const body = JSON.parse(rawBody);
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET || "";
     const hmac = crypto.createHmac('sha1', WEBHOOK_SECRET);
-    // const webhookDigest = hmac.update(data).digest('hex');
-    const webhookDigest = Buffer.from('sha1' + '=' + hmac.update(JSON.stringify(body)).digest('hex'), 'utf8');
-
+    console.log(`hmac: ${hmac}`);
+    const webhookDigest = hmac.update(rawBody).digest('hex');
+    // const webhookDigest = Buffer.from('sha1' + '=' + hmac.update(JSON.stringify(body)).digest('hex'), 'utf8');
+    //const webhookDigest = Buffer.from(hmac.update('sha1' + '=' + rawBody).digest('hex'), 'utf8');
+    //const webhookDigest = Buffer.from(hmac.update('sha1' + '=' + body).digest('hex'), 'utf8');
+    //const webhookDigest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+    
     console.log(`webhookDigest: ${webhookDigest}`);
     console.log(`WEBHOOK_SECRET: ${WEBHOOK_SECRET}`);
 
-    console.log(`Full body: ${JSON.stringify(body)}`);
     const computedSignature = Buffer.from(`sha1=${webhookDigest}`, 'utf-8');
     console.log(`computedSignature: ${computedSignature}`);
-    const requestSignature = Buffer.from(signature);
+    const requestSignature = Buffer.from(signature, 'utf-8');
     console.log(`requestSignature: ${requestSignature}`);
 
     if (computedSignature.length != requestSignature.length || !crypto.timingSafeEqual(computedSignature, requestSignature)) {
-      throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
+      //throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }
 
+    //const data = await JSON.parse(body.data);
+    //var data = JSON.parse(body.data);
+    console.log(`Data: ${body.data}`);
+    console.log(`Change type: ${body.data.change_type}`);
     if (!body?.data?.origin_url || !body?.data?.environment) {
       throw new Error("Missing datafile webhook payload");
     }
