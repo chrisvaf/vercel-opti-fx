@@ -13,7 +13,7 @@ import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import ButtonSkeleton from "@/components/ui/button-skeleton";
 import { FlagValues } from "@vercel/flags/react";
-import { showBuyNowFlag } from "@/lib/flags";
+import { showBuyNowFlag, showInventoryFlag } from "@/lib/flags";
 
 export default async function ProductDetailPage({
   params,
@@ -119,6 +119,9 @@ export default async function ProductDetailPage({
               <Suspense fallback={<ButtonSkeleton />}>
                 <Purchase productId={product.id} />
               </Suspense>
+              <Suspense fallback={<ButtonSkeleton />}>
+                <Inventory />
+              </Suspense>
               <Link
                 href="/cart"
                 prefetch={true}
@@ -144,6 +147,17 @@ async function Purchase({ productId }: { productId: string }) {
       <FlagValues values={{ [showBuyNowFlag.key]: showBuyNow }} />
       <AddToCartButton productId={productId} />
       {showBuyNow.enabled && <BuyNowButton text={buttonText} />}
+    </div>
+  );
+}
+
+async function Inventory({ }: {}) {
+  const showInventory = await showInventoryFlag();
+  const buttonText = showInventory?.inventoryText || "In Stock";
+  return (
+    <div className="flex flex-row w-full gap-1 p-2" style={{color: showInventory.textColor}}>
+      <FlagValues values={{ [showInventoryFlag.key]: showInventory }} />
+      {showInventory.enabled && <Label>{buttonText}</Label>}
     </div>
   );
 }

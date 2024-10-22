@@ -99,7 +99,19 @@ async function updateEdgeConfig(datafile: any) {
     throw new Error("Missing VERCEL_API_TOKEN");
   }
 
+  console.log(`datafile: ${datafile}`);
+
   const edgeConfigEndpoint = `https://api.vercel.com/v1/edge-config/${process.env.VERCEL_EDGE_CONFIG_ID}/items?teamId=${process.env.VERCEL_TEAM_ID}`;
+
+  console.log(JSON.stringify({
+    items: [
+      {
+        operation: "upsert",
+        key: "datafile",
+        value: datafile,
+      },
+    ],
+  }));
 
   return await fetch(edgeConfigEndpoint, {
     method: "PATCH",

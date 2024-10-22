@@ -50,6 +50,60 @@ export const showBuyNowFlag = flag<{
   },
 });
 
+export const showInventoryFlag = flag<{
+  enabled: boolean;
+  inventoryText?: string;
+  showAmounts: boolean,
+  textColor: string
+}>({
+  key: "inventory_on_pdp",
+  description: "Flag to either show or hide inventory on the product detail page.",
+  options: [
+    { label: "Hide", value: { enabled: false, showAmounts: false, textColor: 'green' } },
+    { label: "Show", value: { enabled: true, showAmounts: false, textColor: 'green' } },
+    { label: "Show", value: { enabled: true, showAmounts: true, textColor: 'green' } },
+    { label: "Show", value: { enabled: true, showAmounts: true, textColor: 'Red' } },
+  ],
+  async decide({ headers }) {
+    const datafile = await get("datafile");
+
+    if (!datafile) {
+      throw new Error("Failed to retrive datafile from Vercel Edge Config");
+    }
+
+    const client = optimizely.createInstance({
+      datafile: datafile as object,
+      eventDispatcher: {
+        dispatchEvent: (event) => {},
+      },
+    });
+
+    if (!client) {
+      throw new Error("Failed to create client");
+    }
+
+    await client.onReady();
+
+    const shopper = getShopperFromHeaders(headers);
+    const context = client.createUserContext(shopper);
+
+    if (!context) {
+      throw new Error("Failed to create user context");
+    }
+
+    const decision = context.decide("inventory_on_pdp");
+    console.log(`Decision Enabled: ${decision.enabled}`);
+    const flag = {
+      enabled: decision.enabled,
+      inventoryText: decision.variables.show_amounts ? "3 in stock" : "In stock",
+      textColor: decision.variables.text_color as string,
+      showAmounts: decision.variables.show_amounts as boolean
+    };
+
+    return flag;
+  },
+});
+
 export const showPromoBannerFlag = flag<boolean>({
   key: "showPromoBanner",
   defaultValue: false,
