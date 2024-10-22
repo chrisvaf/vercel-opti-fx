@@ -14,13 +14,18 @@ import { ShoppingCart } from "lucide-react";
 import ButtonSkeleton from "@/components/ui/button-skeleton";
 import { FlagValues } from "@vercel/flags/react";
 import { showBuyNowFlag, showInventoryFlag } from "@/lib/flags";
+import { get } from "@vercel/edge-config";
 
 export default async function ProductDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const product = products.filter((p) => p.slug === params.slug)[0];
+  // const product = products.filter((p) => p.slug === params.slug)[0];
+  const catalog = await get("catalog") as any;
+  var myProducts = catalog.products as typeof products;
+
+  const product = myProducts.filter((p) => p.slug === params.slug)[0];
   if (!product) {
     notFound();
   }

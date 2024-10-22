@@ -109,13 +109,14 @@ export const showInventoryFlag = flag<{
 export const plpFlag = flag<{
   enabled: boolean;
   sortField?: string;
+  productSource?: string;
 }>({
   key: "plp",
   description: "A feature flag to control how products are returned in the Product Listing page.",
   options: [
-    { label: "Hide", value: { enabled: false, sortField: "title" } },
-    { label: "Price Desc", value: { enabled: true, sortField: "price_descending" } },
-    { label: "Price Asc", value: { enabled: true, sortField: "price_ascending" } },
+    { label: "Hide", value: { enabled: false, sortField: "title", productSource: "local" } },
+    { label: "Price Desc", value: { enabled: true, sortField: "price_descending", productSource: "edge_config" } },
+    { label: "Price Asc", value: { enabled: true, sortField: "price_ascending", productSource: "edge_config" } },
   ],
   async decide({ headers }) {
     const datafile = await get("datafile");
@@ -147,7 +148,8 @@ export const plpFlag = flag<{
     const decision = context.decide("plp");
     const flag = {
       enabled: decision.enabled,
-      sortField: decision.variables.sort_field as string
+      sortField: decision.variables.sort_field as string,
+      productSource: decision.variables.product_source as string
     };
 
     return flag;
