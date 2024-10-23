@@ -24,32 +24,21 @@ export async function POST(req: Request) {
     const headersList = await headers();
 
     const signature = headersList.get("X-Hub-Signature");
-    console.log(`Signature: ${signature}`);
-
+    
     if (!signature) {
       throw new Error("Missing X-Hub-Signature header");
     }
 
     const rawBody = await req.text();
-    //console.log(`rawBody: ${rawBody}`);
     const body = JSON.parse(rawBody);
     const WEBHOOK_SECRET = process.env.OPTIMIZELY_WEBHOOK_SECRET || "";
     const hmac = crypto.createHmac('sha1', WEBHOOK_SECRET);
     console.log(`hmac: ${hmac}`);
     const webhookDigest = hmac.update(rawBody).digest('hex');
-    // const webhookDigest = Buffer.from('sha1' + '=' + hmac.update(JSON.stringify(body)).digest('hex'), 'utf8');
-    //const webhookDigest = Buffer.from(hmac.update('sha1' + '=' + rawBody).digest('hex'), 'utf8');
-    //const webhookDigest = Buffer.from(hmac.update('sha1' + '=' + body).digest('hex'), 'utf8');
-    //const webhookDigest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
     
-    console.log(`webhookDigest: ${webhookDigest}`);
-    console.log(`WEBHOOK_SECRET: ${WEBHOOK_SECRET}`);
-
     const computedSignature = Buffer.from(`sha1=${webhookDigest}`, 'utf-8');
-    console.log(`computedSignature: ${computedSignature}`);
     const requestSignature = Buffer.from(signature, 'utf-8');
-    console.log(`requestSignature: ${requestSignature}`);
-
+    
     if (computedSignature.length != requestSignature.length || !crypto.timingSafeEqual(computedSignature, requestSignature)) {
       //throw new Error(`Invalid X-Hub-Signature header, Sent: ${signature}: Stored: ${process.env.OPTIMIZELY_WEBHOOK_SECRET}`);
     }

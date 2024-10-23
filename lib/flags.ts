@@ -1,7 +1,8 @@
 import optimizely from "@optimizely/optimizely-sdk";
 import { unstable_flag as flag } from "@vercel/flags/next";
-import { getShopperFromHeaders } from "./utils";
+import { getProductsFromCookie, getShopperFromHeaders } from "./utils";
 import { get } from "@vercel/edge-config";
+import { cookies } from "next/headers";
 
 export const showBuyNowFlag = flag<{
   enabled: boolean;
@@ -15,8 +16,7 @@ export const showBuyNowFlag = flag<{
   ],
   async decide({ headers }) {
     const datafile = await get("datafile");
-    console.log("Checing buy now")
-
+    
     if (!datafile) {
       throw new Error("Failed to retrive datafile from Vercel Edge Config");
     }
@@ -179,8 +179,14 @@ export const showPromoBannerFlag = flag<boolean>({
     });
 
     const shopper = getShopperFromHeaders(headers);
-    const context = client!.createUserContext(shopper);
 
+    var cartProducts = getProductsFromCookie(cookies());
+    const attributes = {
+      "items_in_cart": cartProducts.length > 0
+    };
+
+    const context = client!.createUserContext(shopper, attributes);
+    
     if (!context) {
       throw new Error("Failed to create user context");
     }

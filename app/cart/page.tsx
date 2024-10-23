@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { products } from "@/lib/products";
-import { formatUSD } from "@/lib/utils";
+import { formatUSD, getProductsFromCookie } from "@/lib/utils";
 import { cookies } from "next/headers";
 import Image from "next/image";
 
@@ -42,19 +42,8 @@ export default function CartPage() {
   );
 }
 
-function getProductsFromCookie() {
-  const cookieStore = cookies();
-  const cart = cookieStore.get("cart");
-  const cartProductIds = cart?.value
-    ? (JSON.parse(cart.value) as string[])
-    : [];
-  return cartProductIds.map((id) => ({
-    ...products.filter((p) => p.id === id)[0],
-  }));
-}
-
 function Cart() {
-  const products = getProductsFromCookie();
+  const products = getProductsFromCookie(cookies());
 
   const total = products.reduce((acc, product) => acc + product.price, 0);
 
@@ -100,7 +89,7 @@ function Cart() {
 }
 
 function OrderSummary() {
-  const products = getProductsFromCookie();
+  const products = getProductsFromCookie(cookies());
 
   const subtotal = products.reduce((acc, product) => acc + product.price, 0);
 
