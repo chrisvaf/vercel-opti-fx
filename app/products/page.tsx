@@ -4,7 +4,7 @@ import { plpFlag } from "@/lib/flags";
 import { Suspense } from "react";
 
 export default async function ProductsPage() {
-    const flag = await getPlpFlag();
+    const flag = await plpFlag();
 
     let sortField = flag?.sortField || "title";
     let productSource = flag?.productSource || "local";
@@ -21,8 +21,4 @@ export default async function ProductsPage() {
       </section>
     </main>
     );
-}
-
-async function getPlpFlag() {
-    return await plpFlag();
 }
