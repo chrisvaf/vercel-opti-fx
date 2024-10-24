@@ -1,24 +1,13 @@
 export const dynamic = "force-dynamic";
 import ProductsListing from "@/components/products";
 import { plpFlag } from "@/lib/flags";
-import { products } from "@/lib/products";
 import { Suspense } from "react";
 
 export default async function ProductsPage() {
-    let sortField = "title";
-    let productSource = "local";
-
     const flag = await getPlpFlag();
 
-    if (flag != null && flag.enabled) {
-        if (flag.sortField != null) {
-            sortField = flag.sortField;
-        }
-
-        if (flag.productSource != null) {
-            productSource = flag.productSource;
-        }
-    }
+    let sortField = flag?.sortField || "title";
+    let productSource = flag?.productSource || "local";
 
     return (
     <main className="max-w-5xl mx-auto py-6 px-4 md:px-6">
@@ -35,6 +24,5 @@ export default async function ProductsPage() {
 }
 
 async function getPlpFlag() {
-    const flag = await plpFlag();
-    return flag;
+    return await plpFlag();
 }

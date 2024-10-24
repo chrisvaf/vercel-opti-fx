@@ -16,21 +16,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getProductsFromCookie(cookieStore:ReadonlyRequestCookies) {
-  let myProducts = products;
-
-  /*const flag = await plpFlag();
-
-  if (flag != null && flag.productSource === "edge_config") {
-    const catalog = await get("catalog") as any;
-      myProducts = catalog.products as typeof products;
-  }*/
-
   const cart = cookieStore?.get("cart");
   const cartProductIds = cart?.value
     ? (JSON.parse(cart.value) as string[])
     : [];
   return cartProductIds.map((id) => ({
-    ...myProducts.filter((p) => p.id === id)[0],
+    ...products.filter((p) => p.id === id)[0],
   }));
 }
 
